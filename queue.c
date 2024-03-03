@@ -139,7 +139,7 @@ bool q_delete_dup(struct list_head *head)
     element_t *current, *future;
     bool dup_edge = false;
     list_for_each_entry_safe (current, future, head, list) {
-        if (!strcmp(current->value, future->value)) {
+        if (&future->list != head && !strcmp(current->value, future->value)) {
             list_del(&current->list);
             free(current->value);
             free(current);
