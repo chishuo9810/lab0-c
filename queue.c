@@ -43,7 +43,6 @@ bool q_insert_head(struct list_head *head, char *s)
     }
     element_t *node = malloc(sizeof(element_t));
     if (!node) {
-        // free(node->value);
         free(node);
         return false;
     }
@@ -66,7 +65,6 @@ bool q_insert_tail(struct list_head *head, char *s)
     }
     element_t *node = malloc(sizeof(element_t));
     if (!node) {
-        // free(node->value);
         free(node);
         return false;
     }
@@ -238,10 +236,104 @@ void q_reverseK(struct list_head *head, int k)
     }
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
 }
-
+struct list_head *mergeTwoLists(struct list_head *first,
+                                struct list_head *second)
+{
+    struct list_head *head, *result;
+    if (strcmp(list_entry(first, element_t, list)->value,
+               list_entry(second, element_t, list)->value) <= 0) {
+        head = first;
+        first = first->next;
+        if (first == NULL) {
+            head->next = second;
+        }
+    } else {
+        head = second;
+        second = second->next;
+        if (second == NULL) {
+            head->next = first;
+        }
+    }
+    result = head;
+    while (first && second) {
+        if (strcmp(list_entry(first, element_t, list)->value,
+                   list_entry(second, element_t, list)->value) < 0) {
+            head->next = first;
+            head = head->next;
+            first = first->next;
+            if (!first) {
+                head->next = second;
+                break;
+            }
+        } else {
+            head->next = second;
+            head = head->next;
+            second = second->next;
+            if (!second) {
+                head->next = first;
+                break;
+            }
+        }
+    }
+    struct list_head *cur, *prev;
+    cur = result->next;
+    prev = result;
+    while (cur) {
+        cur->prev = prev;
+        cur = cur->next;
+        prev = prev->next;
+    }
+    return result;
+}
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
 {
+    struct list_head *result = head;
+    int listsSize = q_size(head);
+    if (!head || !head->next || !listsSize)
+        return;
+    result = result->next;
+    struct list_head *lists[1000000] = {NULL};
+    if (listsSize > 1000000) {
+        q_reverse(head);
+        return;
+    }
+    int k = 0;
+
+    while (result != head) {
+        if (result->next == head) {
+            lists[k] = result;
+            lists[k++]->next = NULL;
+            break;
+        }
+        struct list_head *temp;
+        lists[k] = result;
+        result = result->next->next;
+        lists[k]->next->next = NULL;
+        temp = lists[k]->next;
+        lists[k]->next = NULL;
+        lists[k] = mergeTwoLists(lists[k], temp);
+        k++;
+    }
+    listsSize = k;
+    while (listsSize > 1) {
+        for (int i = 0, j = listsSize - 1; i < j; i++, j--) {
+            lists[i] = mergeTwoLists(lists[i], lists[j]);
+        }
+        listsSize = (listsSize + 1) / 2;
+    }
+    head->next = lists[0];
+    lists[0]->prev = head;
+    result = head;
+    while (result->next) {
+        result = result->next;
+    }
+    result->next = head;
+    head->prev = result;
+    if (descend) {
+        q_reverse(head);
+    }
+    /* Insertion sort
     if (!head || list_empty(head))
         return;
     struct list_head *current, *future, *temp;
@@ -271,6 +363,7 @@ void q_sort(struct list_head *head, bool descend)
             q_reverse(head);
         }
     }
+    */
 }
 
 /* Remove every node which has a node with a strictly less value anywhere to
