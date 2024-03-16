@@ -132,8 +132,6 @@ bool q_delete_mid(struct list_head *head)
         current = current->next;
     }
     delete_node = current->next;
-    // current->next = current->next->next;
-    // current->next->prev = current;
     element_t *node = list_entry(delete_node, element_t, list);
     list_del(delete_node);
     free(node->value);
@@ -225,16 +223,24 @@ void q_reverseK(struct list_head *head, int k)
         future->prev = current_head;
         future->next = current;
         current_head = current->next;
-        // current->next = future->next;
-        // current->next->prev = current;
-        // future->next = current;
-        // current_head->next = future;
-        // future->prev = current_head;
-        // current_head = current;
-        // current = current->next;
-        // future = current->next;
     }
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
+}
+struct list_head *connect_prev(struct list_head *head)
+{
+    struct list_head *cur, *prev;
+    cur = head->next;
+    prev = head;
+    while (cur) {
+        cur->prev = prev;
+        cur = cur->next;
+        prev = prev->next;
+    }
+    prev->next = head;
+    // cur->next = head;
+    // head->prev = cur;
+    // return head;
+    return prev;
 }
 struct list_head *mergeTwoLists(struct list_head *first,
                                 struct list_head *second)
@@ -257,7 +263,7 @@ struct list_head *mergeTwoLists(struct list_head *first,
     result = head;
     while (first && second) {
         if (strcmp(list_entry(first, element_t, list)->value,
-                   list_entry(second, element_t, list)->value) < 0) {
+                   list_entry(second, element_t, list)->value) <= 0) {
             head->next = first;
             head = head->next;
             first = first->next;
@@ -275,16 +281,46 @@ struct list_head *mergeTwoLists(struct list_head *first,
             }
         }
     }
-    struct list_head *cur, *prev;
-    cur = result->next;
-    prev = result;
-    while (cur) {
-        cur->prev = prev;
-        cur = cur->next;
-        prev = prev->next;
-    }
+    // struct list_head *cur, *prev;
+    // cur = result->next;
+    // prev = result;
+    // while (cur) {
+    //     cur->prev = prev;
+    //     cur = cur->next;
+    //     prev = prev->next;
+    // }
     return result;
 }
+// struct list_head *find_run (struct list_head *head) {
+//     struct list_head *pt = head, *nt = head->next;
+//     if (strcmp(list_entry(pt, element_t, list)->value,
+//         list_entry(nt, element_t, list)->value) <= 0) {
+//             do {
+//                 pt = nt;
+//                 nt = nt->next;
+//             } while (nt && strcmp(list_entry(pt, element_t, list)->value,
+//                     list_entry(nt, element_t, list)->value) <= 0);
+//             pt->next = NULL;
+//             // runs[1] = nt;
+//             runs[++k] = nt;
+//     }
+//     else {
+//         struct list_head *prev = NULL;
+//         do {
+//             pt->next = prev;
+//             prev = pt;
+//             pt = nt;
+//             nt = nt->next;
+//             // runs[0] = pt;
+//             runs[k] = pt;
+//         } while (nt && strcmp(list_entry(pt, element_t, list)->value,
+//                     list_entry(nt, element_t, list)->value) > 0);
+//         pt->next = prev;
+//         // runs[1] = nt;
+//         runs[++k] = nt;
+//     }
+//     return runs;
+// }
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
 {
@@ -294,25 +330,34 @@ void q_sort(struct list_head *head, bool descend)
         return;
     result = result->next;
     struct list_head *lists[1000000] = {NULL};
-    if (listsSize > 1000000) {
-        q_reverse(head);
-        return;
-    }
-    int k = 0;
 
+    int k = 0;
     while (result != head) {
         if (result->next == head) {
             lists[k] = result;
             lists[k++]->next = NULL;
             break;
         }
-        struct list_head *temp;
-        lists[k] = result;
-        result = result->next->next;
-        lists[k]->next->next = NULL;
-        temp = lists[k]->next;
-        lists[k]->next = NULL;
-        lists[k] = mergeTwoLists(lists[k], temp);
+        if (strcmp(list_entry(result, element_t, list)->value,
+                   list_entry(result->next, element_t, list)->value) <= 0) {
+            lists[k] = result;
+            do {
+                result = result->next;
+            } while (result->next != head &&
+                     strcmp(list_entry(result, element_t, list)->value,
+                            list_entry(result->next, element_t, list)->value) <=
+                         0);
+            result = result->next;
+            result->prev->next = NULL;
+        } else {
+            struct list_head *temp;
+            lists[k] = result;
+            result = result->next->next;
+            lists[k]->next->next = NULL;
+            temp = lists[k]->next;
+            lists[k]->next = NULL;
+            lists[k] = mergeTwoLists(lists[k], temp);
+        }
         k++;
     }
     listsSize = k;
@@ -322,17 +367,16 @@ void q_sort(struct list_head *head, bool descend)
         }
         listsSize = (listsSize + 1) / 2;
     }
-    head->next = lists[0];
-    lists[0]->prev = head;
-    result = head;
-    while (result->next) {
-        result = result->next;
-    }
-    result->next = head;
-    head->prev = result;
+    lists[0] = connect_prev(lists[0]);
+    head->next = lists[0]->next;
+    head->next->prev = head;
+    head->prev = lists[0];
+    lists[0]->next = head;
     if (descend) {
         q_reverse(head);
     }
+    // printf("%s\n",list_entry(head->next,element_t,list)->value);
+    return;
     /* Insertion sort
     if (!head || list_empty(head))
         return;
