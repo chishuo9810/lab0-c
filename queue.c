@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "queue.h"
 
@@ -237,9 +238,6 @@ struct list_head *connect_prev(struct list_head *head)
         prev = prev->next;
     }
     prev->next = head;
-    // cur->next = head;
-    // head->prev = cur;
-    // return head;
     return prev;
 }
 struct list_head *mergeTwoLists(struct list_head *first,
@@ -250,13 +248,13 @@ struct list_head *mergeTwoLists(struct list_head *first,
                list_entry(second, element_t, list)->value) <= 0) {
         head = first;
         first = first->next;
-        if (first == NULL) {
+        if (!first) {
             head->next = second;
         }
     } else {
         head = second;
         second = second->next;
-        if (second == NULL) {
+        if (!second) {
             head->next = first;
         }
     }
@@ -281,46 +279,8 @@ struct list_head *mergeTwoLists(struct list_head *first,
             }
         }
     }
-    // struct list_head *cur, *prev;
-    // cur = result->next;
-    // prev = result;
-    // while (cur) {
-    //     cur->prev = prev;
-    //     cur = cur->next;
-    //     prev = prev->next;
-    // }
     return result;
 }
-// struct list_head *find_run (struct list_head *head) {
-//     struct list_head *pt = head, *nt = head->next;
-//     if (strcmp(list_entry(pt, element_t, list)->value,
-//         list_entry(nt, element_t, list)->value) <= 0) {
-//             do {
-//                 pt = nt;
-//                 nt = nt->next;
-//             } while (nt && strcmp(list_entry(pt, element_t, list)->value,
-//                     list_entry(nt, element_t, list)->value) <= 0);
-//             pt->next = NULL;
-//             // runs[1] = nt;
-//             runs[++k] = nt;
-//     }
-//     else {
-//         struct list_head *prev = NULL;
-//         do {
-//             pt->next = prev;
-//             prev = pt;
-//             pt = nt;
-//             nt = nt->next;
-//             // runs[0] = pt;
-//             runs[k] = pt;
-//         } while (nt && strcmp(list_entry(pt, element_t, list)->value,
-//                     list_entry(nt, element_t, list)->value) > 0);
-//         pt->next = prev;
-//         // runs[1] = nt;
-//         runs[++k] = nt;
-//     }
-//     return runs;
-// }
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
 {
@@ -375,7 +335,6 @@ void q_sort(struct list_head *head, bool descend)
     if (descend) {
         q_reverse(head);
     }
-    // printf("%s\n",list_entry(head->next,element_t,list)->value);
     return;
     /* Insertion sort
     if (!head || list_empty(head))
