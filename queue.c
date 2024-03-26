@@ -439,3 +439,36 @@ int q_merge(struct list_head *head, bool descend)
     q_sort(result->q, descend);
     return result->size;
 }
+void q_shuffle(struct list_head *head)
+{
+    if (!head || list_empty(head)) {
+        return;
+    }
+    int len = q_size(head);
+    struct list_head *new = head->prev;
+    while (len > 1) {
+        struct list_head *old = head->next;
+        int random = rand() % len;
+        if (random == len - 1) {
+            len--;
+            new = new->prev;
+            continue;
+        }
+        for (int i = 0; i < random; i++) {
+            old = old->next;
+        }
+        struct list_head *tail_prev = new->prev;
+        struct list_head *node_prev = old->prev;
+        if (old->next == new) {
+            list_del(old);
+            list_add(old, new);
+        } else {
+            list_del(old);
+            list_del(new);
+            list_add(old, tail_prev);
+            list_add(new, node_prev);
+        }
+        len--;
+        new = old->prev;
+    }
+}
