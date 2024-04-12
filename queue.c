@@ -247,43 +247,47 @@ struct list_head *connect_prev(struct list_head *head)
 struct list_head *mergeTwoLists(struct list_head *first,
                                 struct list_head *second)
 {
-    struct list_head *head, *result;
-    if (strcmp(list_entry(first, element_t, list)->value,
-               list_entry(second, element_t, list)->value) <= 0) {
-        head = first;
-        first = first->next;
-        if (!first) {
-            head->next = second;
-        }
-    } else {
-        head = second;
-        second = second->next;
-        if (!second) {
-            head->next = first;
-        }
-    }
-    result = head;
-    while (first && second) {
+    struct list_head *head = first, **result = &head;
+    // if (strcmp(list_entry(first, element_t, list)->value,
+    //            list_entry(second, element_t, list)->value) <= 0) {
+    //     head = first;
+    //     first = first->next;
+    //     if (!first) {
+    //         head->next = second;
+    //     }
+    // } else {
+    //     head = second;
+    //     second = second->next;
+    //     if (!second) {
+    //         head->next = first;
+    //     }
+    // }
+    // result = head;
+    while (1) {
         if (strcmp(list_entry(first, element_t, list)->value,
                    list_entry(second, element_t, list)->value) <= 0) {
-            head->next = first;
-            head = head->next;
+            // head->next = first;
+            // head = head->next;
+            *result = first;
+            result = &first->next;
             first = first->next;
             if (!first) {
-                head->next = second;
+                *result = second;
                 break;
             }
         } else {
-            head->next = second;
-            head = head->next;
+            // head->next = second;
+            // head = head->next;
+            *result = second;
+            result = &second->next;
             second = second->next;
             if (!second) {
-                head->next = first;
+                *result = first;
                 break;
             }
         }
     }
-    return result;
+    return head;
 }
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
